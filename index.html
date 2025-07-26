@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- SEO Meta Tags -->
-    <title>Juego de Números en Español - Aprende Números Españoles Online Gratis</title>
+    <title>Juego de Números en Español - Aprende Números Españoles Online</title>
     <meta name="description" content="Juego interactivo gratuito para aprender números en español. Practica la pronunciación y escritura de números españoles con voz nativa. Perfecto para estudiantes de español de todos los niveles.">
     <meta name="keywords" content="números en español, juego números españoles, aprender español, pronunciación números, spanish numbers game, números castellano, practica español, audio español, dictado números">
     <meta name="author" content="Juego Números Español">
@@ -187,11 +187,7 @@
         }
 
         .countdown-timer {
-            font-size: 1.5rem;
-            text-align: center;
-            margin: 10px 0;
-            color: #FF9800;
-            font-weight: bold;
+            display: none; /* Hide countdown timer completely */
         }
 
         .input-section {
@@ -541,7 +537,8 @@
 
                 <div class="feedback" id="feedback"></div>
 
-                <div class="countdown-timer" id="countdownTimer"></div>
+                <!-- Remove or hide countdown timer display -->
+                <div class="countdown-timer" id="countdownTimer" style="display: none;"></div>
 
                 <div style="text-align: center;">
                     <button class="button secondary" id="submitBtn" disabled><i class="bi bi-check"></i> Confirmar</button>
@@ -1166,7 +1163,6 @@
                 // Re-enable manual controls
                 this.playBtn.disabled = false;
                 this.replayBtn.disabled = this.currentNumber === null;
-                this.countdownTimer.textContent = '';
                 this.waitingForAnswer = false;
             }
 
@@ -1184,14 +1180,11 @@
                 if (!this.autoMode) return;
 
                 let countdown = this.settings.autoDelay;
-                this.countdownTimer.textContent = `Siguiente número en: ${countdown}s`;
+                // Remove countdown text display - just use the timer functionality
 
                 this.countdownInterval = setInterval(() => {
                     countdown--;
-                    if (countdown > 0) {
-                        this.countdownTimer.textContent = `Siguiente número en: ${countdown}s`;
-                    } else {
-                        this.countdownTimer.textContent = '';
+                    if (countdown <= 0) {
                         clearInterval(this.countdownInterval);
                     }
                 }, 1000);
