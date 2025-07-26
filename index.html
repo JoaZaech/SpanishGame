@@ -1519,9 +1519,9 @@
                 // Start with first number immediately
                 this.generateNewNumber();
                 
-                // Disable manual controls
+                // Disable manual controls but keep replay enabled
                 this.playBtn.disabled = true;
-                this.replayBtn.disabled = true;
+                // Don't disable replay button - allow it to work in auto mode
             }
 
             stopAutoMode() {
@@ -1551,34 +1551,11 @@
                 this.waitingForAnswer = false;
             }
 
-            updateAutoModeUI() {
-                if (this.autoMode) {
-                    this.autoModeBtn.innerHTML = '<i class="bi bi-pause-circle"></i> Detener Auto';
-                    this.autoModeBtn.className = 'button auto-active';
-                } else {
-                    this.autoModeBtn.innerHTML = '<i class="bi bi-lightning"></i> Modo Automático';
-                    this.autoModeBtn.className = 'button secondary';
+            replayNumber() {
+                // Allow replay in both manual and auto mode
+                if (this.currentNumber !== null) {
+                    this.playNumber();
                 }
-            }
-
-            scheduleNextNumber() {
-                if (!this.autoMode) return;
-
-                let countdown = this.settings.autoDelay;
-                // Remove countdown text display - just use the timer functionality
-
-                this.countdownInterval = setInterval(() => {
-                    countdown--;
-                    if (countdown <= 0) {
-                        clearInterval(this.countdownInterval);
-                    }
-                }, 1000);
-
-                this.nextNumberTimeout = setTimeout(() => {
-                    if (this.autoMode) {
-                        this.generateNewNumber();
-                    }
-                }, this.settings.autoDelay * 1000);
             }
 
             async playNumber() {
@@ -1600,6 +1577,7 @@
                     }
                 }, 100);
                 
+                // Always enable replay button when we have a number
                 this.replayBtn.disabled = false;
                 this.playBtn.disabled = true;
 
@@ -1611,12 +1589,10 @@
 
                 this.numberDisplay.className = 'number-display';
                 this.isPlaying = false;
-                this.playBtn.disabled = false;
-            }
-
-            replayNumber() {
-                if (this.currentNumber !== null && !this.autoMode) {
-                    this.playNumber();
+                
+                // Only re-enable play button if not in auto mode
+                if (!this.autoMode) {
+                    this.playBtn.disabled = false;
                 }
             }
 
