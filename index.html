@@ -292,9 +292,32 @@
             margin-bottom: 5px;
         }
 
+        .stat-value.native-level {
+            color: #4CAF50;
+        }
+
+        .stat-value.advanced-level {
+            color: #8BC34A;
+        }
+
+        .stat-value.intermediate-level {
+            color: #FF9800;
+        }
+
+        .stat-value.beginner-level {
+            color: #f44336;
+        }
+
         .stat-label {
             font-size: clamp(0.8rem, 2vw, 0.9rem);
             opacity: 0.8;
+        }
+
+        .performance-label {
+            font-size: 0.7rem;
+            opacity: 0.9;
+            margin-top: 2px;
+            font-weight: normal;
         }
 
         .settings-panel {
@@ -1506,6 +1529,16 @@
                 this.updateAutoModeUI();
             }
 
+            updateAutoModeUI() {
+                if (this.autoMode) {
+                    this.autoModeBtn.innerHTML = '<i class="bi bi-pause-circle"></i> Detener Auto';
+                    this.autoModeBtn.className = 'button auto-active';
+                } else {
+                    this.autoModeBtn.innerHTML = '<i class="bi bi-lightning"></i> Modo Automático';
+                    this.autoModeBtn.className = 'button secondary';
+                }
+            }
+
             startAutoMode() {
                 // Create auto mode indicator
                 if (!document.getElementById('autoModeIndicator')) {
@@ -1549,6 +1582,27 @@
                 this.playBtn.disabled = false;
                 this.replayBtn.disabled = this.currentNumber === null;
                 this.waitingForAnswer = false;
+            }
+
+            scheduleNextNumber() {
+                if (!this.autoMode) return;
+
+                let countdown = this.settings.autoDelay;
+                // Remove countdown text display - just use the timer functionality
+
+                this.countdownInterval = setInterval(() => {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(this.countdownInterval);
+                        this.countdownInterval = null;
+                    }
+                }, 1000);
+
+                this.nextNumberTimeout = setTimeout(() => {
+                    if (this.autoMode) {
+                        this.generateNewNumber();
+                    }
+                }, this.settings.autoDelay * 1000);
             }
 
             replayNumber() {
@@ -1659,13 +1713,42 @@
                 this.accuracyEl.textContent = `${accuracy.toFixed(1)}%`;
                 this.accuracyProgress.style.width = `${accuracy}%`;
 
-                // Average time
+                // Average time with performance level coloring
                 const allTimes = Object.values(this.stats.responseTimesByNumber).flat();
                 const avgTime = allTimes.length > 0 ? 
                     allTimes.reduce((a, b) => a + b, 0) / allTimes.length : 0;
-                this.avgTimeEl.textContent = avgTime < 1 ? `${Math.round(avgTime * 1000)}ms` : `${avgTime.toFixed(1)}s`;
+                
+                const timeStr = avgTime < 1 ? `${Math.round(avgTime * 1000)}ms` : `${avgTime.toFixed(1)}s`;
+                this.avgTimeEl.textContent = timeStr;
 
-                // Update performance level
+                // Color code the average time based on performance level
+                if (this.stats.totalAttempts >= 3) {
+                    const performance = this.getPerformanceLevel(avgTime);
+                    
+                    // Remove all level classes
+                    this.avgTimeEl.classList.remove('native-level', 'advanced-level', 'intermediate-level', 'beginner-level');
+                    
+                    // Add appropriate level class
+                    this.avgTimeEl.classList.add(`${performance.class}-level`);
+                    
+                    // Update the label to show performance level
+                    const statLabel = this.avgTimeEl.nextElementSibling;
+                    if (statLabel && statLabel.classList.contains('stat-label')) {
+                        statLabel.innerHTML = `
+                            Tiempo Promedio
+                            <div class="performance-label">${performance.icon} ${performance.level}</div>
+                        `;
+                    }
+                } else {
+                    // Reset if not enough attempts
+                    this.avgTimeEl.classList.remove('native-level', 'advanced-level', 'intermediate-level', 'beginner-level');
+                    const statLabel = this.avgTimeEl.nextElementSibling;
+                    if (statLabel && statLabel.classList.contains('stat-label')) {
+                        statLabel.innerHTML = 'Tiempo Promedio';
+                    }
+                }
+
+                // Update performance level display
                 if (this.stats.totalAttempts >= 5) {
                     const performance = this.getPerformanceLevel(avgTime);
                     this.currentPerformance.style.display = 'block';
@@ -1799,11 +1882,9 @@
                 
                 // Better mobile focus handling
                 setTimeout(() => {
-                    if (this.autoMode) {
-                        this.answerInput.focus();
-                        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                            this.answerInput.click();
-                        }
+                    this.answerInput.focus();
+                    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                        this.answerInput.click();
                     }
                 }, 100);
                 
